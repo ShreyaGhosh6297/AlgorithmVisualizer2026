@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Merge Sort Visualizer</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+        }
+        
+        #array-container {
+            margin-top: 40px;
+            height: 200px;
+        }
+        
+        .box {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            margin: 5px;
+            background-color: lightblue;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Merge Sort Visualizer</h2>
+
+    <input type="text" id="inputArray" placeholder="Enter numbers separated by space" size="40">
+    <button onclick="generateSteps()">Generate Steps</button>
+
+    <br><br>
+
+    <button onclick="start()">Start ▶</button>
+    <button onclick="pause()">Pause ⏸</button>
+    <button onclick="previousStep()">Previous ⏮</button>
+    <button onclick="nextStep()">Next ⏭</button>
+
+    <div id="stepInfo"></div>
+    <div id="array-container"></div>
+
+    <script>
+        let arr = [];
+        let steps = [];
+        let currentStep = 0;
+        let interval;
+
+        //////////////////////////////////////////////////
+        // Generate Merge Sort Steps
+        //////////////////////////////////////////////////
+
+        function generateSteps() {
+
+            arr = document.getElementById("inputArray").value
+                .trim()
+                .split(/\s+/)
+                .map(Number);
+
+            steps = [];
+            steps.push({
+                array: [...arr],
+                colors: {}
+            });
+
+            mergeSort(arr, 0, arr.length - 1);
+
+            // Final sorted step (all green)
+            let finalColors = {};
+            for (let i = 0; i < arr.length; i++) {
+                finalColors[i] = "green";
+            }
+
+            steps.push({
+                array: [...arr],
+                colors: finalColors
+            });
+
+            currentStep = 0;
+            drawStep();
+        }
+
+        //////////////////////////////////////////////////
+        // Merge Sort Recursive
+        //////////////////////////////////////////////////
+
+        function mergeSort(array, left, right) {
+
+            if (left >= right) return;
+
+            let mid = Math.floor((left + right) / 2);
+
+            // Highlight divide section (orange)
+            let divideColors = {};
+            for (let i = left; i <= right; i++) {
+                divideColors[i] = "orange";
+            }
+
+            steps.push({
+                array: [...array],
+                colors: divideColors
+            });
+
+            mergeSort(array, left, mid);
+            mergeSort(array, mid + 1, right);
+
+            merge(array, left, mid, right);
+        }
+
+        //////////////////////////////////////////////////
+        // Merge Function
+        //////////////////////////////////////////////////
+
+        function merge(array, left, mid, right) {
+
+            let leftArr = array.slice(left, mid + 1);
+            let rightArr = array.slice(mid + 1, right + 1);
+
+            let i = 0,
+                j = 0,
+                k = left;
+
+            while (i < leftArr.length && j < rightArr.length) {
+
+                // Comparison highlight (red)
+                steps.push({
+                    array: [...array],
+                    colors: {
+                        [k]: "red"
+                    }
+                });
+
+                if (leftArr[i] <= rightArr[j]) {
+                    array[k] = leftArr[i];
+                    i++;
+                } else {
+                    array[k] = rightArr[j];
+                    j++;
+                }
+
+                // Merged position (green)
+                steps.push({
+                    array: [...array],
+                    colors: {
+                        [k]: "green"
+                    }
+                });
+
+                k++;
+            }
+
+            while (i < leftArr.length) {
+                array[k] = leftArr[i];
+                steps.push({
+                    array: [...array],
+                    colors: {
+                        [k]: "green"
+                    }
+                });
+                i++;
+                k++;
+            }
+
+            while (j < rightArr.length) {
+                array[k] = rightArr[j];
+                steps.push({
+                    array: [...array],
+                    colors: {
+                        [k]: "green"
+                    }
+                });
+                j++;
+                k++;
+            }
+        }
+
+        //////////////////////////////////////////////////
+        // Draw Step
+        //////////////////////////////////////////////////
+
+        function drawStep() {
+
+            let container = document.getElementById("array-container");
+            container.innerHTML = "";
+
+            let step = steps[currentStep];
+
+            step.array.forEach((value, index) => {
+
+                let div = document.createElement("div");
+                div.className = "box";
+                div.innerText = value;
+
+                div.style.backgroundColor =
+                    step.colors[index] || "lightblue";
+
+                container.appendChild(div);
+            });
+
+            document.getElementById("stepInfo").innerText =
+                `Step: ${currentStep + 1} / ${steps.length}`;
+        }
+
+        //////////////////////////////////////////////////
+        // Controls
+        //////////////////////////////////////////////////
+
+        function start() {
+            interval = setInterval(() => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    drawStep();
+                } else {
+                    clearInterval(interval);
+                }
+            }, 700);
+        }
+
+        function pause() {
+            clearInterval(interval);
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                drawStep();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                drawStep();
+            }
+        }
+    </script>
+
+</body>
+
+</html>

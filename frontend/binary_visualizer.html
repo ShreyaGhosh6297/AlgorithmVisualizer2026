@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Binary Search Visualizer</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+        }
+        
+        #array-container {
+            margin-top: 40px;
+            height: 200px;
+        }
+        
+        .box {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            margin: 5px;
+            background-color: lightblue;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Binary Search Visualizer</h2>
+
+    <input type="text" id="inputArray" placeholder="Enter SORTED numbers separated by space" size="50">
+    <input type="number" id="targetValue" placeholder="Target">
+    <button onclick="generateSteps()">Search</button>
+
+    <br><br>
+
+    <button onclick="start()">Start ▶</button>
+    <button onclick="pause()">Pause ⏸</button>
+    <button onclick="previousStep()">Previous ⏮</button>
+    <button onclick="nextStep()">Next ⏭</button>
+
+    <div id="stepInfo"></div>
+    <div id="array-container"></div>
+
+    <script>
+        let arr = [];
+        let steps = [];
+        let currentStep = 0;
+        let interval;
+
+        function generateSteps() {
+
+            arr = document.getElementById("inputArray").value
+                .trim().split(/\s+/).map(Number);
+
+            let target = Number(document.getElementById("targetValue").value);
+
+            steps = [];
+            steps.push({
+                array: [...arr],
+                colors: {}
+            });
+
+            let low = 0,
+                high = arr.length - 1;
+            let found = false;
+
+            while (low <= high) {
+
+                let mid = Math.floor((low + high) / 2);
+
+                let colorMap = {};
+
+                for (let i = low; i <= high; i++) {
+                    colorMap[i] = "yellow";
+                }
+
+                colorMap[mid] = "red";
+
+                steps.push({
+                    array: [...arr],
+                    colors: colorMap
+                });
+
+                if (arr[mid] === target) {
+                    steps.push({
+                        array: [...arr],
+                        colors: {
+                            [mid]: "green"
+                        }
+                    });
+                    found = true;
+                    break;
+                } else if (arr[mid] < target) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            if (!found) {
+                steps.push({
+                    array: [...arr],
+                    colors: {}
+                });
+            }
+
+            currentStep = 0;
+            drawStep();
+        }
+
+        function drawStep() {
+            let container = document.getElementById("array-container");
+            container.innerHTML = "";
+            let step = steps[currentStep];
+
+            step.array.forEach((value, index) => {
+                let div = document.createElement("div");
+                div.className = "box";
+                div.innerText = value;
+                div.style.backgroundColor =
+                    step.colors[index] || "lightblue";
+                container.appendChild(div);
+            });
+
+            document.getElementById("stepInfo").innerText =
+                `Step: ${currentStep+1} / ${steps.length}`;
+        }
+
+        function start() {
+            interval = setInterval(() => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    drawStep();
+                } else clearInterval(interval);
+            }, 800);
+        }
+
+        function pause() {
+            clearInterval(interval);
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                drawStep();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                drawStep();
+            }
+        }
+    </script>
+</body>
+
+</html>
